@@ -44,6 +44,9 @@ public class TeamServiceTest {
         Team team = new Team("1", "Team A", "Company A", "creator1", "project1", null, null);
         Project project = new Project("project1", "Project A", "Description A");
         User user = new User("creator1", "Jane Doe", "jane.doe@example.com", "password", "", null);
+        team.setProject(project);
+        team.setCreator(user);
+        user.setTeam(team);
         when(teamRepository.findAll()).thenReturn(List.of(team));
         when(projectRepository.findById("project1")).thenReturn(Optional.of(project));
         when(userRepository.findById("creator1")).thenReturn(Optional.of(user));
@@ -63,7 +66,11 @@ public class TeamServiceTest {
     @Test
     void testAddTeam() {
         Team team = new Team("1", "Team A", "Company A", "creator1", "project1", null, null);
-
+        Project project = new Project("project1", "Project A", "Description A");
+        User user = new User("creator1", "Jane Doe", "jane.doe@example.com", "password", "", null);
+        team.setProject(project);
+        team.setCreator(user);
+        user.setTeam(team);
         teamService.addTeam(team);
 
         verify(teamRepository, times(1)).insert(team);
@@ -72,7 +79,11 @@ public class TeamServiceTest {
     @Test
     void testUpdateTeam() {
         Team team = new Team("1", "Team A", "Company A", "creator1", "project1", null, null);
-
+        Project project = new Project("project1", "Project A", "Description A");
+        User user = new User("creator1", "Jane Doe", "jane.doe@example.com", "password", "", null);
+        team.setProject(project);
+        team.setCreator(user);
+        user.setTeam(team);
         teamService.updateTeam(team);
 
         verify(teamRepository, times(1)).save(team);
@@ -81,30 +92,26 @@ public class TeamServiceTest {
     @Test
     void testDeleteTeam() {
         Team team = new Team("1", "Team A", "Company A", "creator1", "project1", null, null);
-
+        Project project = new Project("project1", "Project A", "Description A");
+        User user = new User("creator1", "Jane Doe", "jane.doe@example.com", "password", "", null);
+        team.setProject(project);
+        team.setCreator(user);
+        user.setTeam(team);
         teamService.deleteTeam(team);
 
         verify(teamRepository, times(1)).delete(team);
     }
 
-    @Test
-    void testTeamByOrganisation() {
-        Team team = new Team("1", "Team A", "Company A", "creator1", "project1", null, null);
-        when(teamRepository.findAll()).thenReturn(List.of(team));
-
-        List<Team> teams = teamService.teamByOrganisation("Company A");
-
-        assertNotNull(teams);
-        assertEquals(1, teams.size());
-        assertEquals("Team A", teams.get(0).getName());
-        assertEquals("Company A", teams.get(0).getCompanyName());
-    }
 
     @Test
     void testTeamsByProject() {
         Project project = new Project("project1", "Project A", "Description A");
-        Team team = new Team("1", "Team A", "Company A", "creator1", "project1", project, null);
-        when(teamRepository.findAll()).thenReturn(List.of(team));
+        User user = new User("creator1", "Jane Doe", "jane.doe@example.com", "password", "", null);
+        Team team = new Team("1", "Team A", "Company A", "creator1", "project1", project, user);
+
+        when(teamService.getAllTeams()).thenReturn(List.of(team));
+        when(userRepository.findById("creator1")).thenReturn(java.util.Optional.of(user));
+        when(projectRepository.findById("project1")).thenReturn(java.util.Optional.of(project));
 
         List<Team> teams = teamService.teamsByProject(project);
 

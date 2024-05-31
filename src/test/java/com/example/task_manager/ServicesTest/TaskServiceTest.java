@@ -1,5 +1,6 @@
 package com.example.task_manager.ServicesTest;
 
+import com.example.task_manager.Models.Project;
 import com.example.task_manager.Models.Task;
 import com.example.task_manager.Models.Team;
 import com.example.task_manager.Models.User;
@@ -89,10 +90,16 @@ public class TaskServiceTest {
     @Test
     void testTasksByUser() {
         User user = new User("user1", "Jane Doe", "jane.doe@example.com", "password", "team1", null);
+
         Task task = new Task("1", "Task A", "Description A", LocalDate.now(), LocalDate.now().plusDays(5), "user1", false, "team1", user, null);
+
         when(taskRepository.findAll()).thenReturn(List.of(task));
+        when(userRepository.findById("user1")).thenReturn(Optional.of(user));
+        when(teamRepository.findById("team1")).thenReturn(Optional.empty());
+
 
         List<Task> tasks = taskService.tasksByUser(user);
+
 
         assertNotNull(tasks);
         assertEquals(1, tasks.size());
@@ -114,15 +121,40 @@ public class TaskServiceTest {
 
     @Test
     void testTasksByTeam() {
+        Project project = new Project("project1", "Project A", "Description A");
+
+        User user = new User("user1", "John Doe", "john.doe@example.com", "password", "ROLE_USER", null);
+        User creator = new User("creator1", "Jane Doe", "jane.doe@example.com", "password", "ROLE_ADMIN", null);
+
         Team team = new Team("team1", "Team A", "Company A", "creator1", "project1", null, null);
-        Task task = new Task("1", "Task A", "Description A", LocalDate.now(), LocalDate.now().plusDays(5), "user1", false, "team1", null, team);
-        when(taskRepository.findAll()).thenReturn(List.of(task));
+        team.setProject(project);
+        team.setCreator(creator);
+
+        Task task1 = new Task("1", "Task A", "Description A", LocalDate.now(), LocalDate.now().plusDays(5), "user1", false, "team1", user, team);
+        Task task2 = new Task("2", "Task B", "Description B", LocalDate.now(), LocalDate.now().plusDays(10), "user1", false, "team1", user, team);
+
+        when(taskRepository.findAll()).thenReturn(List.of(task1, task2));
+        when(userRepository.findById("user1")).thenReturn(Optional.of(user));
+        when(teamRepository.findById("team1")).thenReturn(Optional.of(team));
 
         List<Task> tasks = taskService.tasksByTeam(team);
 
         assertNotNull(tasks);
-        assertEquals(1, tasks.size());
-        assertEquals("Task A", tasks.get(0).getName());
-        assertEquals("Team A", tasks.get(0).getTeam().getName());
+        assertEquals(2, tasks.size());
+
+        Task retrievedTask1 = tasks.get(0);
+        Task retrievedTask2 = tasks.get(1);
+
+        assertEquals("Task A", retrievedTask1.getName());
+        assertEquals("Team A", retrievedTask1.getTeam().getName());
+        assertEquals("Project A", retrievedTask1.getTeam().getProject().getName());
+        assertEquals("John Doe", retrievedTask1.getUser().getFullName());
+
+        assertEquals("Task B", retrievedTask2.getName());
+        assertEquals("Team A", retrievedTask2.getTeam().getName());
+        assertEquals("Project A", retrievedTask2.getTeam().getProject().getName());
+        assertEquals("John Doe", retrievedTask2.getUser().getFullName());
     }
+
+
 }
